@@ -9,7 +9,24 @@ int handle_events(SDL_Event *event) {
     return 1; // Continue running
 }
 
-/* Function to handle keyboard input and update player position */
+void handleMouseMotion(SDL_Event *event, double *playerAngle) {
+    if (event->type == SDL_MOUSEMOTION) {
+        int mouseX, mouseY;
+        SDL_GetMouseState(&mouseX, &mouseY);
+
+        // Mouse sensitivity
+        const double mouseSensitivity = 0.001;
+
+        *playerAngle += (mouseX - SCREEN_WIDTH / 2) * mouseSensitivity;
+        if (*playerAngle < 0) *playerAngle += 2 * M_PI;
+        if (*playerAngle >= 2 * M_PI) *playerAngle -= 2 * M_PI;
+
+        // Center the mouse for continuous rotation
+        SDL_WarpMouseInWindow(NULL, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+    }
+}
+
+/* Function to handle keyboard input and update player position, including map toggle */
 void handleKeyboardInput(SDL_Event *event, double *playerX, double *playerY, double *playerAngle) {
     const double moveSpeed = 0.1; // Speed at which the player moves
     const double turnSpeed = 0.05; // Speed at which the player turns
@@ -41,30 +58,13 @@ void handleKeyboardInput(SDL_Event *event, double *playerX, double *playerY, dou
                 *playerAngle += turnSpeed;
                 if (*playerAngle >= 2 * M_PI) *playerAngle -= 2 * M_PI;
                 break;
+            case SDLK_m: // Toggle map display
+                showMap = !showMap;
+                break;
         }
     }
 }
 
-
-void handleMouseMotion(SDL_Event *event, double *playerAngle) {
-    if (event->type == SDL_MOUSEMOTION) {
-        int mouseX, mouseY;
-        SDL_GetMouseState(&mouseX, &mouseY);
-
-        // Mouse sensitivity
-        const double mouseSensitivity = 0.001;
-
-        *playerAngle += (mouseX - SCREEN_WIDTH / 2) * mouseSensitivity;
-        if (*playerAngle < 0) *playerAngle += 2 * M_PI;
-        if (*playerAngle >= 2 * M_PI) *playerAngle -= 2 * M_PI;
-
-        // Center the mouse for continuous rotation
-        SDL_WarpMouseInWindow(NULL, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-    }
-}
-
-
-/* Handle mouse motion for rotating the camera */
 void loadMap(const char *filename) {
     FILE *file = fopen(filename, "r");
     if (!file) {
@@ -99,46 +99,5 @@ void loadMap(const char *filename) {
     if (y < MAP_HEIGHT || x < MAP_WIDTH) {
         fprintf(stderr, "Unexpected end of map file\n");
         exit(EXIT_FAILURE);
-    }
-}
-
-
-int showMap = 0; // Global variable to toggle map display
-
-void handleKeyboardInput(SDL_Event *event, double *playerX, double *playerY, double *playerAngle) {
-    const double moveSpeed = 0.1;
-    const double turnSpeed = 0.05;
-    double newX, newY;
-
-    if (event->type == SDL_KEYDOWN) {
-        switch (event->key.keysym.sym) {
-            case SDLK_w:
-                newX = *playerX + cos(*playerAngle) * moveSpeed;
-                newY = *playerY + sin(*playerAngle) * moveSpeed;
-                if (map[(int)newY][(int)newX] == 0) {
-                    *playerX = newX;
-                    *playerY = newY;
-                }
-                break;
-            case SDLK_s:
-                newX = *playerX - cos(*playerAngle) * moveSpeed;
-                newY = *playerY - sin(*playerAngle) * moveSpeed;
-                if (map[(int)newY][(int)newX] == 0) {
-                    *playerX = newX;
-                    *playerY = newY;
-                }
-                break;
-            case SDLK_a:
-                *playerAngle -= turnSpeed;
-                if (*playerAngle < 0) *playerAngle += 2 * M_PI;
-                break;
-            case SDLK_d:
-                *playerAngle += turnSpeed;
-                if (*playerAngle >= 2 * M_PI) *playerAngle -= 2 * M_PI;
-                break;
-            case SDLK_m: // Toggle map display
-                showMap = !showMap;
-                break;
-        }
     }
 }
