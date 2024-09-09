@@ -65,6 +65,10 @@ void handleKeyboardInput(SDL_Event *event, double *playerX, double *playerY, dou
     }
 }
 
+
+
+#define MAX_LINE_LENGTH 100  // Arbitrary large value for line buffer
+
 void loadMap(const char *filename) {
     FILE *file = fopen(filename, "r");
     if (!file) {
@@ -72,45 +76,53 @@ void loadMap(const char *filename) {
         exit(EXIT_FAILURE);
     }
 
-    int x = 0, y = 0;
-    int ch;  // Use int to handle EOF properly
+    char line[MAX_LINE_LENGTH];
+    int y = 0;
 
     printf("Reading map file: %s\n", filename);
 
-    while ((ch = fgetc(file)) != EOF && y < MAP_HEIGHT) {
-        if (ch == '\n') {
-            // Move to the next row
-            printf("End of row %d\n", y);
-            y++;
-            x = 0;  // Reset x for the next row
-        } else {
-            if (x < MAP_WIDTH) {
-                if (ch == '#') {
-                    map[y][x] = 1;  // Wall
-                    printf("Setting map[%d][%d] to 1 (Wall)\n", y, x);
-                } else if (ch == '.') {
-                    map[y][x] = 0;  // Empty space
-                    printf("Setting map[%d][%d] to 0 (Empty)\n", y, x);
-                } else {
-                    fclose(file);
-                    fprintf(stderr, "Error: Invalid character '%c' in map file at (%d, %d)\n", ch, y, x);
-                    exit(EXIT_FAILURE);
-                }
-                x++;
+    // Read the file line by line
+    while (fgets(line, sizeof(line), file)) {
+        // Strip newline characters (if any)
+        line[strcspn(line, "\n")] = '\0';
+
+        if (y >= MAP_HEIGHT) {
+            fprintf(stderr, "Error: Map file has more rows than expected (MAP_HEIGHT = %d)\n", MAP_HEIGHT);
+            fclose(file);
+            exit(EXIT_FAILURE);
+        }
+
+        // Check if the line length matches MAP_WIDTH
+        int lineLength = strlen(line);
+        if (lineLength != MAP_WIDTH) {
+            fprintf(stderr, "Error: Line %d in map has %d characters, expected %d\n", y, lineLength, MAP_WIDTH);
+            fclose(file);
+            exit(EXIT_FAILURE);
+        }
+
+        // Parse each character in the line
+        for (int x = 0; x < MAP_WIDTH; x++) {
+            if (line[x] == '#') {
+                map[y][x] = 1;  // Wall
+            } else if (line[x] == '.') {
+                map[y][x] = 0;  // Empty space
             } else {
+                fprintf(stderr, "Error: Invalid character '%c' at (%d, %d) in map file\n", line[x], y, x);
                 fclose(file);
-                fprintf(stderr, "Error: Line %d exceeds expected width of %d characters\n", y, MAP_WIDTH);
                 exit(EXIT_FAILURE);
             }
         }
+
+        y++;
     }
 
     fclose(file);
 
-    printf("Finished reading the map. y = %d, x = %d\n", y, x);
-
-    if (y < MAP_HEIGHT || x < MAP_WIDTH) {
-        fprintf(stderr, "Unexpected end of map file. Expected dimensions %dx%d, but only read %dx%d\n", MAP_WIDTH, MAP_HEIGHT, x, y);
+    // Ensure the map has exactly the expected number of rows
+    if (y < MAP_HEIGHT) {
+        fprintf(stderr, "Error: Map file has fewer rows than expected (MAP_HEIGHT = %d)\n", MAP_HEIGHT);
         exit(EXIT_FAILURE);
     }
+
+    printf("Map loaded successfully.\n");
 }
