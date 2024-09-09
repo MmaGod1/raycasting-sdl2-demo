@@ -1,5 +1,5 @@
 #include <SDL2/SDL.h>
-#include "header.h"
+#include "raycasting.h"
 
 /* Define the map dimensions */
 #define MAP_WIDTH 10

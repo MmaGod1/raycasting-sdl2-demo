@@ -1,5 +1,5 @@
 #include <SDL2/SDL.h>
-#include "header.h"
+#include "raycasting.h"
 
 #define TURN_SPEED 0.005
 

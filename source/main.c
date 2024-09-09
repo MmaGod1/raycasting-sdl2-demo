@@ -1,5 +1,5 @@
 #include <SDL2/SDL.h>
-#include "header.h"
+#include "raycasting.h"
 
 /**
  * main - Entry point for the raycasting program.
