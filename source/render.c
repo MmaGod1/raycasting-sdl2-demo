@@ -74,3 +74,45 @@ void render(SDL_Renderer *renderer, double playerX, double playerY, double playe
         SDL_RenderDrawLine(renderer, x, drawEnd, x, SCREEN_HEIGHT);
     }
 }
+
+
+/* Function to draw the map */
+void drawMap(SDL_Renderer *renderer, double playerX, double playerY, double playerAngle) {
+    const int cellSize = 20;
+    for (int y = 0; y < MAP_HEIGHT; y++) {
+        for (int x = 0; x < MAP_WIDTH; x++) {
+            SDL_Rect rect;
+            rect.x = x * cellSize;
+            rect.y = y * cellSize;
+            rect.w = cellSize;
+            rect.h = cellSize;
+
+            if (map[y][x] == 1) {
+                SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Wall color
+            } else {
+                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Empty space color
+            }
+            SDL_RenderFillRect(renderer, &rect);
+        }
+    }
+
+    // Draw the player's line of sight
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // Line color
+    SDL_RenderDrawLine(renderer, playerX * cellSize, playerY * cellSize,
+                       (playerX + cos(playerAngle) * 10) * cellSize,
+                       (playerY + sin(playerAngle) * 10) * cellSize);
+}
+
+/* Updated render function to include map drawing */
+void render(SDL_Renderer *renderer, double playerX, double playerY, double playerAngle) {
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderClear(renderer);
+
+    // Draw the map if enabled
+    if (showMap) {
+        drawMap(renderer, playerX, playerY, playerAngle);
+    }
+
+    // Add your existing rendering code here
+    SDL_RenderPresent(renderer);
+}
