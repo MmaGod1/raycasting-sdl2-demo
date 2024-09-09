@@ -1,15 +1,54 @@
-#include <SDL2/SDL.h>
 #include "raycasting.h"
 
-#define TURN_SPEED 0.005
+/* Function to handle keyboard input and update player position */
+void handleKeyboardInput(SDL_Event *event, double *playerX, double *playerY, double *playerAngle) {
+    const double moveSpeed = 0.1; // Speed at which the player moves
+    const double turnSpeed = 0.05; // Speed at which the player turns
+    double newX, newY;
 
-void handleMouseMotion(double *playerAngle) {
-    int mouseX, mouseY;
-    SDL_GetRelativeMouseState(&mouseX, &mouseY);
+    if (event->type == SDL_KEYDOWN) {
+        switch (event->key.keysym.sym) {
+            case SDLK_w: // Move forward
+                newX = *playerX + cos(*playerAngle) * moveSpeed;
+                newY = *playerY + sin(*playerAngle) * moveSpeed;
+                if (map[(int)newY][(int)newX] == 0) { // Check for wall collision
+                    *playerX = newX;
+                    *playerY = newY;
+                }
+                break;
+            case SDLK_s: // Move backward
+                newX = *playerX - cos(*playerAngle) * moveSpeed;
+                newY = *playerY - sin(*playerAngle) * moveSpeed;
+                if (map[(int)newY][(int)newX] == 0) { // Check for wall collision
+                    *playerX = newX;
+                    *playerY = newY;
+                }
+                break;
+            case SDLK_a: // Turn left
+                *playerAngle -= turnSpeed;
+                if (*playerAngle < 0) *playerAngle += 2 * M_PI;
+                break;
+            case SDLK_d: // Turn right
+                *playerAngle += turnSpeed;
+                if (*playerAngle >= 2 * M_PI) *playerAngle -= 2 * M_PI;
+                break;
+        }
+    }
+}
 
-    *playerAngle -= mouseX * TURN_SPEED; // Adjust the angle based on mouse movement
 
-    // Optionally constrain the angle to avoid wrapping around
-    if (*playerAngle < 0) *playerAngle += 2 * M_PI;
-    if (*playerAngle >= 2 * M_PI) *playerAngle -= 2 * M_PI;
+
+/* Handle mouse motion for rotating the camera */
+void handleMouseMotion(SDL_Event *event, double *playerAngle) {
+    if (event->type == SDL_MOUSEMOTION) {
+        int mouseX, mouseY;
+        SDL_GetMouseState(&mouseX, &mouseY);
+
+        /* Mouse sensitivity */
+        const double mouseSensitivity = 0.001;
+
+        *playerAngle += (mouseX - SCREEN_WIDTH / 2) * mouseSensitivity;
+        if (*playerAngle < 0) *playerAngle += 2 * M_PI;
+        if (*playerAngle >= 2 * M_PI) *playerAngle -= 2 * M_PI;
+    }
 }
