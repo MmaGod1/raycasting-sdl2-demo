@@ -78,18 +78,19 @@ void loadMap(const char *filename) {
     printf("Reading map file: %s\n", filename);
 
     while ((ch = fgetc(file)) != EOF && y < MAP_HEIGHT) {
-        printf("Reading character: %c at (y = %d, x = %d)\n", ch, y, x);
-
         if (ch == '\n') {
-            // End of line, move to the next row
+            // Move to the next row
+            printf("End of row %d\n", y);
             y++;
-            x = 0;
+            x = 0;  // Reset x for the next row
         } else {
             if (x < MAP_WIDTH) {
                 if (ch == '#') {
                     map[y][x] = 1;  // Wall
+                    printf("Setting map[%d][%d] to 1 (Wall)\n", y, x);
                 } else if (ch == '.') {
                     map[y][x] = 0;  // Empty space
+                    printf("Setting map[%d][%d] to 0 (Empty)\n", y, x);
                 } else {
                     fclose(file);
                     fprintf(stderr, "Error: Invalid character '%c' in map file at (%d, %d)\n", ch, y, x);
@@ -97,8 +98,8 @@ void loadMap(const char *filename) {
                 }
                 x++;
             } else {
-                fprintf(stderr, "Error: Line %d exceeds expected width of %d characters\n", y, MAP_WIDTH);
                 fclose(file);
+                fprintf(stderr, "Error: Line %d exceeds expected width of %d characters\n", y, MAP_WIDTH);
                 exit(EXIT_FAILURE);
             }
         }
@@ -106,10 +107,10 @@ void loadMap(const char *filename) {
 
     fclose(file);
 
-    printf("Finished reading the map. Read up to y = %d, x = %d\n", y, x);
+    printf("Finished reading the map. y = %d, x = %d\n", y, x);
 
     if (y < MAP_HEIGHT || x < MAP_WIDTH) {
-        fprintf(stderr, "Unexpected end of map file. Expected dimensions %dx%d, but read %dx%d\n", MAP_WIDTH, MAP_HEIGHT, x, y);
+        fprintf(stderr, "Unexpected end of map file. Expected dimensions %dx%d, but only read %dx%d\n", MAP_WIDTH, MAP_HEIGHT, x, y);
         exit(EXIT_FAILURE);
     }
 }
