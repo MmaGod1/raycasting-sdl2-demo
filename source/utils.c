@@ -77,11 +77,16 @@ void loadMap(const char *filename) {
 
     for (int y = 0; y < MAP_HEIGHT; y++) {
         for (int x = 0; x < MAP_WIDTH; x++) {
-            char ch = fgetc(file);
-            if (ch == EOF || ch == '\n') {
+            int ch = fgetc(file);
+            if (ch == EOF) {
                 fclose(file);
                 perror("Map file format error");
                 exit(EXIT_FAILURE);
+            }
+
+            if (ch == '\n') {
+                x--; // Stay on the same column if newline is encountered
+                continue;
             }
 
             if (ch == '#') {
