@@ -44,11 +44,14 @@ void handleMouseMotion(SDL_Event *event, double *playerAngle) {
         int mouseX, mouseY;
         SDL_GetMouseState(&mouseX, &mouseY);
 
-        /* Mouse sensitivity */
+        // Mouse sensitivity
         const double mouseSensitivity = 0.001;
 
         *playerAngle += (mouseX - SCREEN_WIDTH / 2) * mouseSensitivity;
         if (*playerAngle < 0) *playerAngle += 2 * M_PI;
         if (*playerAngle >= 2 * M_PI) *playerAngle -= 2 * M_PI;
+
+        // Center the mouse for continuous rotation
+        SDL_WarpMouseInWindow(NULL, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
     }
 }
