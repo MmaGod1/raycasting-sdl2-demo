@@ -1,18 +1,28 @@
 #include <SDL2/SDL.h>
 #include "raycasting.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 /**
  * main - Entry point for the raycasting program.
  *
  * Return: 0 on success, or error code.
  */
-int main(void)
-{
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <map file>\n", argv[0]);
+        return 1;
+    }
+
     SDL_Window *window;
     SDL_Renderer *renderer;
     SDL_Event event;
     double playerX = 3.5, playerY = 3.5, playerAngle = 1.57;
     int running = 1;
+
+    /* Load the map */
+    loadMap(argv[1]);
 
     /* Initialize SDL */
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
