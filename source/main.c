@@ -13,6 +13,7 @@ int main(void)
     SDL_Event event;
     double playerX = 3.5, playerY = 3.5, playerAngle = 1.57;
     int running = 1;
+    const double moveSpeed = 0.1; // Speed of movement
 
     /* Initialize SDL */
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -42,6 +43,26 @@ int main(void)
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 running = 0;
+            }
+            if (event.type == SDL_KEYDOWN) {
+                switch (event.key.keysym.sym) {
+                    case SDLK_w: // Move forward
+                        playerX += cos(playerAngle) * moveSpeed;
+                        playerY += sin(playerAngle) * moveSpeed;
+                        break;
+                    case SDLK_s: // Move backward
+                        playerX -= cos(playerAngle) * moveSpeed;
+                        playerY -= sin(playerAngle) * moveSpeed;
+                        break;
+                    case SDLK_a: // Strafe left
+                        playerX -= cos(playerAngle + M_PI_2) * moveSpeed;
+                        playerY -= sin(playerAngle + M_PI_2) * moveSpeed;
+                        break;
+                    case SDLK_d: // Strafe right
+                        playerX += cos(playerAngle - M_PI_2) * moveSpeed;
+                        playerY += sin(playerAngle - M_PI_2) * moveSpeed;
+                        break;
+                }
             }
             if (event.type == SDL_MOUSEMOTION) {
                 handleMouseMotion(&playerAngle); // Update angle based on mouse movement
