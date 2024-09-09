@@ -22,6 +22,7 @@ extern int map[MAP_HEIGHT][MAP_WIDTH];
 /* Function prototypes */
 void render(SDL_Renderer *renderer, double playerX, double playerY, double playerAngle);
 int handle_events(SDL_Event *event);
+void loadMap(const char *filename);
 
 /* For mouse movement */
 void handleMouseMotion(SDL_Event *event, double *playerAngle);
