@@ -6,9 +6,12 @@
  *
  * Return: 0 to exit the program, 1 to continue running.
  */
-int handle_events(SDL_Event *event)
-{
-    if (event->type == SDL_QUIT)
-        return (0);
-    return (1);
+
+#define TURN_SPEED 0.005
+
+void handleMouseMotion(double *playerAngle) {
+    int mouseX, mouseY;
+    SDL_GetRelativeMouseState(&mouseX, &mouseY);
+
+    *playerAngle -= mouseX * TURN_SPEED; // Adjust the angle based on mouse movement
 }
