@@ -75,19 +75,13 @@ void loadMap(const char *filename) {
 
     for (int y = 0; y < MAP_HEIGHT; y++) {
         for (int x = 0; x < MAP_WIDTH; x++) {
-            int ch = fgetc(file);
-            if (ch == EOF) {
-                fclose(file);
-                perror("Map file format error");
-                exit(EXIT_FAILURE);
-            }
-
-            if (ch == '\n') {
-                x--; // Stay on the same column if newline is encountered
-                continue;
-            }
-
-            if (ch == '#') {
+            char ch = fgetc(file);
+            if (ch == EOF || ch == '\n') {
+                // If end of line or file, ensure we handle it correctly
+                if (x < MAP_WIDTH) {
+                    map[y][x] = 0; // Default to empty space if the line is shorter
+                }
+            } else if (ch == '#') {
                 map[y][x] = 1; // Wall
             } else if (ch == '.') {
                 map[y][x] = 0; // Empty space
