@@ -101,3 +101,44 @@ void loadMap(const char *filename) {
         exit(EXIT_FAILURE);
     }
 }
+
+
+int showMap = 0; // Global variable to toggle map display
+
+void handleKeyboardInput(SDL_Event *event, double *playerX, double *playerY, double *playerAngle) {
+    const double moveSpeed = 0.1;
+    const double turnSpeed = 0.05;
+    double newX, newY;
+
+    if (event->type == SDL_KEYDOWN) {
+        switch (event->key.keysym.sym) {
+            case SDLK_w:
+                newX = *playerX + cos(*playerAngle) * moveSpeed;
+                newY = *playerY + sin(*playerAngle) * moveSpeed;
+                if (map[(int)newY][(int)newX] == 0) {
+                    *playerX = newX;
+                    *playerY = newY;
+                }
+                break;
+            case SDLK_s:
+                newX = *playerX - cos(*playerAngle) * moveSpeed;
+                newY = *playerY - sin(*playerAngle) * moveSpeed;
+                if (map[(int)newY][(int)newX] == 0) {
+                    *playerX = newX;
+                    *playerY = newY;
+                }
+                break;
+            case SDLK_a:
+                *playerAngle -= turnSpeed;
+                if (*playerAngle < 0) *playerAngle += 2 * M_PI;
+                break;
+            case SDLK_d:
+                *playerAngle += turnSpeed;
+                if (*playerAngle >= 2 * M_PI) *playerAngle -= 2 * M_PI;
+                break;
+            case SDLK_m: // Toggle map display
+                showMap = !showMap;
+                break;
+        }
+    }
+}
