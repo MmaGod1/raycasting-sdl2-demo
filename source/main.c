@@ -43,7 +43,6 @@ int main(void)
             }
             handleKeyboardInput(&event, &playerX, &playerY, &playerAngle);
             handleMouseMotion(&event, &playerAngle); // Handle mouse movement
-        }
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
