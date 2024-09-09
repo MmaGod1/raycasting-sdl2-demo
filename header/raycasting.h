@@ -18,6 +18,7 @@
 
 /* Declare the map array */
 extern int map[MAP_HEIGHT][MAP_WIDTH];
+extern int showMap; // For toggling map display
 
 /* Function prototypes */
 void render(SDL_Renderer *renderer, double playerX, double playerY, double playerAngle);
@@ -28,5 +29,7 @@ void loadMap(const char *filename);
 void handleMouseMotion(SDL_Event *event, double *playerAngle);
 /* For keyboard input and movement */
 void handleKeyboardInput(SDL_Event *event, double *playerX, double *playerY, double *playerAngle);
+/* For drawing the map */
+void drawMap(SDL_Renderer *renderer, double playerX, double playerY, double playerAngle);
 
 #endif /* RAYCASTING_H */
