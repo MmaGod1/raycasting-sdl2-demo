@@ -29,6 +29,7 @@ void render(SDL_Renderer *renderer, double playerX, double playerY, double playe
     for (x = 0; x < SCREEN_WIDTH; x++)
     {
         rayAngle = (playerAngle - FOV / 2.0) + (x / (double)SCREEN_WIDTH) * FOV;
+        rayAngle *= (M_PI / 180.0);  // Convert degrees to radians
         distanceToWall = 0;
         hit = 0;
         isVerticalHit = 0;
@@ -67,7 +68,8 @@ void render(SDL_Renderer *renderer, double playerX, double playerY, double playe
         else
             SDL_SetRenderDrawColor(renderer, 128, 128, 128, 255); /* Wall facing E/W */
 
-        SDL_RenderDrawLine(renderer, x, drawStart, x, drawEnd);
+        SDL_Rect wallRect = {x, drawStart, 1, drawEnd - drawStart};
+        SDL_RenderFillRect(renderer, &wallRect);
 
         SDL_SetRenderDrawColor(renderer, 0, 128, 0, 255); /* Floor color */
         SDL_RenderDrawLine(renderer, x, drawEnd, x, SCREEN_HEIGHT);
