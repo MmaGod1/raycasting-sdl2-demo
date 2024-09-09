@@ -1,6 +1,5 @@
 #include <SDL2/SDL.h>
-#include "raycasting.h"
-
+#include "raycasting.h" 
 /**
  * main - Entry point for the raycasting program.
  *
@@ -35,11 +34,16 @@ int main(void)
         return 1;
     }
 
+    SDL_SetRelativeMouseMode(SDL_TRUE); // Enable relative mouse mode for better camera control
+
     /* Main loop */
     while (running) {
         while (SDL_PollEvent(&event)) {
-            if (!handle_events(&event)) {
+            if (event.type == SDL_QUIT) {
                 running = 0;
+            }
+            if (event.type == SDL_MOUSEMOTION) {
+                handleMouseMotion(&playerAngle); // Update angle based on mouse movement
             }
         }
 
@@ -50,6 +54,8 @@ int main(void)
 
         SDL_RenderPresent(renderer);
     }
+
+    SDL_SetRelativeMouseMode(SDL_FALSE); // Disable relative mouse mode when exiting
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
