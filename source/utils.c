@@ -1,11 +1,5 @@
-#include "raycasting.h"
-
-/**
- * handle_events - Handles SDL events.
- * @event: Pointer to the SDL_Event structure.
- *
- * Return: 0 to exit the program, 1 to continue running.
- */
+#include <SDL2/SDL.h>
+#include "header.h"
 
 #define TURN_SPEED 0.005
 
@@ -14,4 +8,8 @@ void handleMouseMotion(double *playerAngle) {
     SDL_GetRelativeMouseState(&mouseX, &mouseY);
 
     *playerAngle -= mouseX * TURN_SPEED; // Adjust the angle based on mouse movement
+
+    // Optionally constrain the angle to avoid wrapping around
+    if (*playerAngle < 0) *playerAngle += 2 * M_PI;
+    if (*playerAngle >= 2 * M_PI) *playerAngle -= 2 * M_PI;
 }
