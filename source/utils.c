@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include "raycasting.h"
 
+
+/* Initialize to 0 (map off by default) */
+int showMap = 0;
+
 int handle_events(SDL_Event *event) {
     if (event->type == SDL_QUIT) {
         return 0; // Exit the loop
