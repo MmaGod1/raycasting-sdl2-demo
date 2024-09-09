@@ -22,4 +22,7 @@ extern int map[MAP_HEIGHT][MAP_WIDTH];
 void render(SDL_Renderer *renderer, double playerX, double playerY, double playerAngle);
 int handle_events(SDL_Event *event);
 
+/* Add this for mouse movement */
+void handleMouseMotion(double *playerAngle);
+
 #endif /* RAYCASTING_H */
