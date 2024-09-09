@@ -48,24 +48,6 @@ void handleKeyboardInput(SDL_Event *event, double *playerX, double *playerY, dou
 
 
 /* Handle mouse motion for rotating the camera */
-void handleMouseMotion(SDL_Event *event, double *playerAngle) {
-    if (event->type == SDL_MOUSEMOTION) {
-        int mouseX, mouseY;
-        SDL_GetMouseState(&mouseX, &mouseY);
-
-        // Mouse sensitivity
-        const double mouseSensitivity = 0.001;
-
-        *playerAngle += (mouseX - SCREEN_WIDTH / 2) * mouseSensitivity;
-        if (*playerAngle < 0) *playerAngle += 2 * M_PI;
-        if (*playerAngle >= 2 * M_PI) *playerAngle -= 2 * M_PI;
-
-        // Center the mouse for continuous rotation
-        SDL_WarpMouseInWindow(NULL, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-    }
-}
-
-
 void loadMap(const char *filename) {
     FILE *file = fopen(filename, "r");
     if (!file) {
@@ -74,17 +56,17 @@ void loadMap(const char *filename) {
     }
 
     int x = 0, y = 0;
-    char ch;
+    int ch;  // Change this to int to handle EOF properly
     while ((ch = fgetc(file)) != EOF && y < MAP_HEIGHT) {
         if (ch == '\n') {
             y++;
-            x = 0; // Reset x at the beginning of each line
+            x = 0;  // Reset x at the beginning of each line
         } else {
             if (x < MAP_WIDTH) {
                 if (ch == '#') {
-                    map[y][x] = 1; // Wall
+                    map[y][x] = 1;  // Wall
                 } else if (ch == '.') {
-                    map[y][x] = 0; // Empty space
+                    map[y][x] = 0;  // Empty space
                 } else {
                     fclose(file);
                     fprintf(stderr, "Map file contains invalid characters\n");
