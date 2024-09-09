@@ -24,8 +24,7 @@ void render(SDL_Renderer *renderer, double playerX, double playerY, double playe
 int handle_events(SDL_Event *event);
 
 /* For mouse movement */
-void handleMouseMotion(double *playerAngle);
-
+void handleMouseMotion(SDL_Event *event, double *playerAngle);
 /* For keyboard input and movement */
 void handleKeyboardInput(SDL_Event *event, double *playerX, double *playerY, double *playerAngle);
 
