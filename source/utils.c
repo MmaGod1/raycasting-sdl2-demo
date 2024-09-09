@@ -73,31 +73,32 @@ void loadMap(const char *filename) {
         exit(EXIT_FAILURE);
     }
 
-    for (int y = 0; y < MAP_HEIGHT; y++) {
-        for (int x = 0; x < MAP_WIDTH; x++) {
-            int ch = fgetc(file);  // Change 'char' to 'int' for EOF handling
-            if (ch == EOF) {
-                fclose(file);
-                perror("Unexpected end of map file");
-                exit(EXIT_FAILURE);
-            }
-
-            if (ch == '\n') {
-                x--; // Skip newlines without incrementing x
-                continue;
-            }
-
-            if (ch == '#') {
-                map[y][x] = 1; // Wall
-            } else if (ch == '.') {
-                map[y][x] = 0; // Empty space
-            } else {
-                fclose(file);
-                perror("Map file contains invalid characters");
-                exit(EXIT_FAILURE);
+    int x = 0, y = 0;
+    char ch;
+    while ((ch = fgetc(file)) != EOF && y < MAP_HEIGHT) {
+        if (ch == '\n') {
+            y++;
+            x = 0; // Reset x at the beginning of each line
+        } else {
+            if (x < MAP_WIDTH) {
+                if (ch == '#') {
+                    map[y][x] = 1; // Wall
+                } else if (ch == '.') {
+                    map[y][x] = 0; // Empty space
+                } else {
+                    fclose(file);
+                    fprintf(stderr, "Map file contains invalid characters\n");
+                    exit(EXIT_FAILURE);
+                }
+                x++;
             }
         }
     }
 
     fclose(file);
+
+    if (y < MAP_HEIGHT || x < MAP_WIDTH) {
+        fprintf(stderr, "Unexpected end of map file\n");
+        exit(EXIT_FAILURE);
+    }
 }
