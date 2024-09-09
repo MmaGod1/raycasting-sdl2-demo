@@ -46,6 +46,23 @@ void handleKeyboardInput(SDL_Event *event, double *playerX, double *playerY, dou
 }
 
 
+void handleMouseMotion(SDL_Event *event, double *playerAngle) {
+    if (event->type == SDL_MOUSEMOTION) {
+        int mouseX, mouseY;
+        SDL_GetMouseState(&mouseX, &mouseY);
+
+        // Mouse sensitivity
+        const double mouseSensitivity = 0.001;
+
+        *playerAngle += (mouseX - SCREEN_WIDTH / 2) * mouseSensitivity;
+        if (*playerAngle < 0) *playerAngle += 2 * M_PI;
+        if (*playerAngle >= 2 * M_PI) *playerAngle -= 2 * M_PI;
+
+        // Center the mouse for continuous rotation
+        SDL_WarpMouseInWindow(NULL, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+    }
+}
+
 
 /* Handle mouse motion for rotating the camera */
 void loadMap(const char *filename) {
