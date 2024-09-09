@@ -8,6 +8,10 @@
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
 
+/* Define Field of View (FOV) in radians */
+#define FOV (60 * (M_PI / 180))
+/* 60 degrees converted to radians (π/3 radians) */
+
 /* Define map dimensions */
 #define MAP_WIDTH 10
 #define MAP_HEIGHT 10
