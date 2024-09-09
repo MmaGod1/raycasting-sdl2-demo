@@ -1,4 +1,8 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include "raycasting.h"
+
+int map[MAP_HEIGHT][MAP_WIDTH];
 
 int handle_events(SDL_Event *event) {
     if (event->type == SDL_QUIT) {
@@ -61,4 +65,36 @@ void handleMouseMotion(SDL_Event *event, double *playerAngle) {
         // Center the mouse for continuous rotation
         SDL_WarpMouseInWindow(NULL, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
     }
+}
+
+
+void loadMap(const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (!file) {
+        perror("Error opening map file");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int y = 0; y < MAP_HEIGHT; y++) {
+        for (int x = 0; x < MAP_WIDTH; x++) {
+            char ch = fgetc(file);
+            if (ch == EOF || ch == '\n') {
+                fclose(file);
+                perror("Map file format error");
+                exit(EXIT_FAILURE);
+            }
+
+            if (ch == '#') {
+                map[y][x] = 1; // Wall
+            } else if (ch == '.') {
+                map[y][x] = 0; // Empty space
+            } else {
+                fclose(file);
+                perror("Map file contains invalid characters");
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+
+    fclose(file);
 }
