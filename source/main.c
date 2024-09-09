@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
-#include "raycasting.h" 
+#include "header.h"
+
 /**
  * main - Entry point for the raycasting program.
  *
@@ -34,7 +35,7 @@ int main(void)
         return 1;
     }
 
-    SDL_SetRelativeMouseMode(SDL_TRUE); // Enable relative mouse mode for better camera control
+    SDL_SetRelativeMouseMode(SDL_TRUE); // Enable relative mouse mode
 
     /* Main loop */
     while (running) {
