@@ -1,5 +1,12 @@
 #include "raycasting.h"
 
+int handle_events(SDL_Event *event) {
+    if (event->type == SDL_QUIT) {
+        return 0; // Exit the loop
+    }
+    return 1; // Continue running
+}
+
 /* Function to handle keyboard input and update player position */
 void handleKeyboardInput(SDL_Event *event, double *playerX, double *playerY, double *playerAngle) {
     const double moveSpeed = 0.1; // Speed at which the player moves
