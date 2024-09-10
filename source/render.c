@@ -22,6 +22,8 @@ int map[MAP_HEIGHT][MAP_WIDTH] = {
 /* Function to draw the map */
 void drawMap(SDL_Renderer *renderer, double playerX, double playerY, double playerAngle) {
     const int cellSize = 20;
+
+    // Loop through the map and draw each cell
     for (int y = 0; y < MAP_HEIGHT; y++) {
         for (int x = 0; x < MAP_WIDTH; x++) {
             SDL_Rect rect;
@@ -31,17 +33,27 @@ void drawMap(SDL_Renderer *renderer, double playerX, double playerY, double play
             rect.h = cellSize;
 
             if (map[y][x] == 1) {
-                SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Wall color
+                SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Wall color (red)
             } else {
-                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Empty space color
+                SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255); // Empty space color (gray)
             }
             SDL_RenderFillRect(renderer, &rect);
         }
     }
 
+    // Draw the player on the map
+    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255); // Player color (blue)
+    SDL_Rect playerRect = {
+        (int)(playerX * cellSize - 5), 
+        (int)(playerY * cellSize - 5), 
+        10, 10
+    };
+    SDL_RenderFillRect(renderer, &playerRect);
+
     // Draw the player's line of sight
-    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // Line color
-    SDL_RenderDrawLine(renderer, playerX * cellSize, playerY * cellSize,
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // Line color (green)
+    SDL_RenderDrawLine(renderer,
+                       playerX * cellSize, playerY * cellSize,
                        (playerX + cos(playerAngle) * 10) * cellSize,
                        (playerY + sin(playerAngle) * 10) * cellSize);
 }
