@@ -1,118 +1,104 @@
-#include <SDL2/SDL.h>
-#include <math.h>
 #include "raycasting.h"
 
-/* Define the map dimensions */
-#define MAP_WIDTH 10
-#define MAP_HEIGHT 10
+/**
+ * render_walls - Draws the walls using raycasting.
+ * @renderer: The SDL renderer.
+ * @camera: The player/camera's position and direction.
+ * @map: The game map represented as a 2D array.
+ */
+void render_walls(SDL_Renderer *renderer, Camera *camera, int map[MAP_HEIGHT][MAP_WIDTH])
+{
+    for (int x = 0; x < SCREEN_WIDTH; x++)
+    {
+        // Calculate the ray position and direction
+        double camera_x = 2 * x / (double)SCREEN_WIDTH - 1; // x-coordinate in camera space
+        double ray_dir_x = camera->dir_x + camera->plane_x * camera_x;
+        double ray_dir_y = camera->dir_y + camera->plane_y * camera_x;
 
-/* Define the map array */
-int map[MAP_HEIGHT][MAP_WIDTH] = {
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},  /* Top border */
-    {1, 0, 0, 0, 1, 0, 0, 0, 0, 1},  /* Mixed walls and open spaces */
-    {1, 0, 1, 0, 1, 1, 1, 0, 0, 1},
-    {1, 0, 1, 0, 0, 0, 1, 0, 0, 1},
-    {1, 0, 1, 1, 1, 0, 1, 0, 0, 1},
-    {1, 0, 0, 0, 1, 0, 0, 0, 0, 1},
-    {1, 1, 1, 1, 1, 0, 1, 1, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 1, 1, 1, 1, 1, 1, 0, 1},
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}   /* Bottom border */
-};
+        // Determine which square of the map the ray is in
+        int map_x = (int)camera->pos_x;
+        int map_y = (int)camera->pos_y;
 
-int showMap = 1; // Ensure this is set to non-zero
+        // Calculate the distance to the next x and y sides
+        double delta_dist_x = fabs(1 / ray_dir_x);
+        double delta_dist_y = fabs(1 / ray_dir_y);
 
-/* Function to draw the map */
-void drawMap(SDL_Renderer *renderer, double playerX, double playerY, double playerAngle) {
-    const int cellSize = 20;
+        double side_dist_x, side_dist_y;
 
-    // Loop through the map and draw each cell
-    for (int y = 0; y < MAP_HEIGHT; y++) {
-        for (int x = 0; x < MAP_WIDTH; x++) {
-            SDL_Rect rect;
-            rect.x = x * cellSize;
-            rect.y = y * cellSize;
-            rect.w = cellSize;
-            rect.h = cellSize;
+        // Determine step direction and initial side distance
+        int step_x, step_y;
+        int hit = 0; // Has the ray hit a wall?
+        int side; // Was the wall hit on the x or y side?
 
-            // Set color based on whether it's a wall or empty space
-            if (map[y][x] == 1) {
-                SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Wall color (red)
-            } else {
-                SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255); // Empty space color (gray)
-            }
-            SDL_RenderFillRect(renderer, &rect);  // Draw the cell
+        if (ray_dir_x < 0)
+        {
+            step_x = -1;
+            side_dist_x = (camera->pos_x - map_x) * delta_dist_x;
         }
-    }
-
-    // Draw the player on the map
-    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255); // Player color (blue)
-    SDL_Rect playerRect = {
-        (int)(playerX * cellSize - 5), 
-        (int)(playerY * cellSize - 5), 
-        10, 10
-    };
-    SDL_RenderFillRect(renderer, &playerRect);
-
-    // Draw the player's line of sight
-    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // Line color (green)
-    SDL_RenderDrawLine(renderer,
-                       (int)(playerX * cellSize), (int)(playerY * cellSize),
-                       (int)((playerX + cos(playerAngle) * 5) * cellSize),
-                       (int)((playerY + sin(playerAngle) * 5) * cellSize));
-}
-
-/* Function to perform raycasting */
-void performRaycasting(SDL_Renderer *renderer, double playerX, double playerY, double playerAngle) {
-    const int numRays = 60; // Number of rays to cast
-    const double angleStep = M_PI / 3 / numRays; // Angle between rays
-    const int screenWidth = 640; // Width of the screen
-    const int screenHeight = 480; // Height of the screen
-
-    for (int i = 0; i < numRays; i++) {
-        double rayAngle = playerAngle - M_PI / 6 + i * angleStep;
-        double rayX = playerX;
-        double rayY = playerY;
-        double stepSize = 0.1;
-        double distance = 0;
-        int hit = 0;
-
-        while (!hit && rayX >= 0 && rayY >= 0 && rayX < MAP_WIDTH && rayY < MAP_HEIGHT) {
-            int mapX = (int)rayX;
-            int mapY = (int)rayY;
-
-            if (map[mapY][mapX] == 1) {
-                hit = 1;
-                distance = sqrt((rayX - playerX) * (rayX - playerX) + (rayY - playerY) * (rayY - playerY));
-            } else {
-                rayX += cos(rayAngle) * stepSize;
-                rayY += sin(rayAngle) * stepSize;
-            }
+        else
+        {
+            step_x = 1;
+            side_dist_x = (map_x + 1.0 - camera->pos_x) * delta_dist_x;
         }
 
-        // Draw the ray
-        double scale = 200 / (distance + 0.1); // Scale to fit the screen
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // Ray color (white)
-        SDL_RenderDrawLine(renderer,
-                           (int)(screenWidth / 2 + i * (screenWidth / numRays)), 0,
-                           (int)(screenWidth / 2 + i * (screenWidth / numRays)), (int)(screenHeight - scale));
+        if (ray_dir_y < 0)
+        {
+            step_y = -1;
+            side_dist_y = (camera->pos_y - map_y) * delta_dist_y;
+        }
+        else
+        {
+            step_y = 1;
+            side_dist_y = (map_y + 1.0 - camera->pos_y) * delta_dist_y;
+        }
+
+        // Perform DDA algorithm to find where the ray hits the wall
+        while (hit == 0)
+        {
+            if (side_dist_x < side_dist_y)
+            {
+                side_dist_x += delta_dist_x;
+                map_x += step_x;
+                side = 0;
+            }
+            else
+            {
+                side_dist_y += delta_dist_y;
+                map_y += step_y;
+                side = 1;
+            }
+
+            // Check if ray has hit a wall
+            if (map[map_y][map_x] > 0) hit = 1;
+        }
+
+        // Calculate distance to the wall
+        double perp_wall_dist;
+        if (side == 0)
+            perp_wall_dist = (map_x - camera->pos_x + (1 - step_x) / 2) / ray_dir_x;
+        else
+            perp_wall_dist = (map_y - camera->pos_y + (1 - step_y) / 2) / ray_dir_y;
+
+        // Calculate height of line to draw on the screen
+        int line_height = (int)(SCREEN_HEIGHT / perp_wall_dist);
+
+        // Calculate the lowest and highest pixel to fill in the wall stripe
+        int draw_start = -line_height / 2 + SCREEN_HEIGHT / 2;
+        if (draw_start < 0) draw_start = 0;
+        int draw_end = line_height / 2 + SCREEN_HEIGHT / 2;
+        if (draw_end >= SCREEN_HEIGHT) draw_end = SCREEN_HEIGHT - 1;
+
+        // Choose color for the wall based on the side of the wall
+        SDL_SetRenderDrawColor(renderer, side == 0 ? 255 : 128, 0, 0, 255); // Red for x-side, darker for y-side
+
+        // Draw the vertical line representing the wall
+        SDL_RenderDrawLine(renderer, x, draw_start, x, draw_end);
+
+        // Draw the ceiling and floor
+        SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255); // Blue for ceiling
+        SDL_RenderDrawLine(renderer, x, 0, x, draw_start);
+
+        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // Green for floor
+        SDL_RenderDrawLine(renderer, x, draw_end, x, SCREEN_HEIGHT);
     }
-}
-
-/* Updated render function to include map drawing and 3D raycasting */
-void render(SDL_Renderer *renderer, double playerX, double playerY, double playerAngle) {
-    // Clear the screen with a black background
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderClear(renderer);
-
-    // Draw the map if enabled
-    if (showMap) {
-        drawMap(renderer, playerX, playerY, playerAngle);
-    }
-
-    // Perform raycasting
-    performRaycasting(renderer, playerX, playerY, playerAngle);
-
-    // Present the final frame
-    SDL_RenderPresent(renderer);
 }
