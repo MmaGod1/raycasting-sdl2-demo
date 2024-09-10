@@ -57,9 +57,46 @@ void drawMap(SDL_Renderer *renderer, double playerX, double playerY, double play
     // Draw the player's line of sight
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // Line color (green)
     SDL_RenderDrawLine(renderer,
-                       playerX * cellSize, playerY * cellSize,
-                       (playerX + cos(playerAngle) * 10) * cellSize,
-                       (playerY + sin(playerAngle) * 10) * cellSize);
+                       (int)(playerX * cellSize), (int)(playerY * cellSize),
+                       (int)((playerX + cos(playerAngle) * 5) * cellSize),
+                       (int)((playerY + sin(playerAngle) * 5) * cellSize));
+}
+
+/* Function to perform raycasting */
+void performRaycasting(SDL_Renderer *renderer, double playerX, double playerY, double playerAngle) {
+    const int numRays = 60; // Number of rays to cast
+    const double angleStep = M_PI / 3 / numRays; // Angle between rays
+    const int screenWidth = 640; // Width of the screen
+    const int screenHeight = 480; // Height of the screen
+
+    for (int i = 0; i < numRays; i++) {
+        double rayAngle = playerAngle - M_PI / 6 + i * angleStep;
+        double rayX = playerX;
+        double rayY = playerY;
+        double stepSize = 0.1;
+        double distance = 0;
+        int hit = 0;
+
+        while (!hit && rayX >= 0 && rayY >= 0 && rayX < MAP_WIDTH && rayY < MAP_HEIGHT) {
+            int mapX = (int)rayX;
+            int mapY = (int)rayY;
+
+            if (map[mapY][mapX] == 1) {
+                hit = 1;
+                distance = sqrt((rayX - playerX) * (rayX - playerX) + (rayY - playerY) * (rayY - playerY));
+            } else {
+                rayX += cos(rayAngle) * stepSize;
+                rayY += sin(rayAngle) * stepSize;
+            }
+        }
+
+        // Draw the ray
+        double scale = 200 / (distance + 0.1); // Scale to fit the screen
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // Ray color (white)
+        SDL_RenderDrawLine(renderer,
+                           (int)(screenWidth / 2 + i * (screenWidth / numRays)), 0,
+                           (int)(screenWidth / 2 + i * (screenWidth / numRays)), (int)(screenHeight - scale));
+    }
 }
 
 /* Updated render function to include map drawing and 3D raycasting */
@@ -73,7 +110,8 @@ void render(SDL_Renderer *renderer, double playerX, double playerY, double playe
         drawMap(renderer, playerX, playerY, playerAngle);
     }
 
-    // Raycasting code should be placed here
+    // Perform raycasting
+    performRaycasting(renderer, playerX, playerY, playerAngle);
 
     // Present the final frame
     SDL_RenderPresent(renderer);
