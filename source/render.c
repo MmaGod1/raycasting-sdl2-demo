@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <math.h>
 #include "raycasting.h"
 
 /* Define the map dimensions */
@@ -19,6 +20,8 @@ int map[MAP_HEIGHT][MAP_WIDTH] = {
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}   /* Bottom border */
 };
 
+int showMap = 1; // Ensure this is set to non-zero
+
 /* Function to draw the map */
 void drawMap(SDL_Renderer *renderer, double playerX, double playerY, double playerAngle) {
     const int cellSize = 20;
@@ -32,12 +35,13 @@ void drawMap(SDL_Renderer *renderer, double playerX, double playerY, double play
             rect.w = cellSize;
             rect.h = cellSize;
 
+            // Set color based on whether it's a wall or empty space
             if (map[y][x] == 1) {
                 SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Wall color (red)
             } else {
                 SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255); // Empty space color (gray)
             }
-            SDL_RenderFillRect(renderer, &rect);
+            SDL_RenderFillRect(renderer, &rect);  // Draw the cell
         }
     }
 
@@ -60,6 +64,7 @@ void drawMap(SDL_Renderer *renderer, double playerX, double playerY, double play
 
 /* Updated render function to include map drawing and 3D raycasting */
 void render(SDL_Renderer *renderer, double playerX, double playerY, double playerAngle) {
+    // Clear the screen with a black background
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
@@ -68,7 +73,8 @@ void render(SDL_Renderer *renderer, double playerX, double playerY, double playe
         drawMap(renderer, playerX, playerY, playerAngle);
     }
 
-    // Add raycasting-based rendering code here (original content from the first render function)
+    // Raycasting code should be placed here
 
+    // Present the final frame
     SDL_RenderPresent(renderer);
 }
