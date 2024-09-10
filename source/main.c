@@ -1,70 +1,101 @@
-#include <SDL2/SDL.h>
 #include "raycasting.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 /**
- * main - Entry point for the raycasting program.
+ * initialize_sdl - Initializes SDL components.
+ * @window: Pointer to the SDL window.
+ * @renderer: Pointer to the SDL renderer.
  *
- * Return: 0 on success, or error code.
+ * Return: 0 on success, -1 on failure.
  */
-
-int main(int argc, char *argv[]) {
-    if (argc < 2) {
-        fprintf(stderr, "Usage: %s <map file>\n", argv[0]);
-        return 1;
+int initialize_sdl(SDL_Window **window, SDL_Renderer **renderer)
+{
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    {
+        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        return (-1);
     }
 
-    SDL_Window *window;
-    SDL_Renderer *renderer;
+    *window = SDL_CreateWindow("Raycasting",
+                               SDL_WINDOWPOS_UNDEFINED,
+                               SDL_WINDOWPOS_UNDEFINED,
+                               SCREEN_WIDTH, SCREEN_HEIGHT,
+                               SDL_WINDOW_SHOWN);
+    if (!*window)
+    {
+        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+        return (-1);
+    }
+
+    *renderer = SDL_CreateRenderer(*window, -1, SDL_RENDERER_ACCELERATED);
+    if (!*renderer)
+    {
+        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+        return (-1);
+    }
+
+    return (0);
+}
+
+/**
+ * game_loop - Handles the main game loop.
+ * @renderer: Pointer to SDL renderer.
+ * @camera: Pointer to camera object.
+ * @map: 2D game map.
+ */
+void game_loop(SDL_Renderer *renderer, Camera *camera, int map[MAP_HEIGHT][MAP_WIDTH])
+{
     SDL_Event event;
-    double playerX = 3.5, playerY = 3.5, playerAngle = 1.57;
-    int running = 1;
+    int quit = 0;
+    const double move_speed = 0.1;
+    const double rot_speed = 0.05;
 
-    /* Load the map */
-    loadMap(argv[1]);
-
-    /* Initialize SDL */
-    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        printf("SDL_Init Error: %s\n", SDL_GetError());
-        return 1;
-    }
-
-    window = SDL_CreateWindow("Raycasting Demo", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-    if (!window) {
-        printf("SDL_CreateWindow Error: %s\n", SDL_GetError());
-        SDL_Quit();
-        return 1;
-    }
-
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (!renderer) {
-        printf("SDL_CreateRenderer Error: %s\n", SDL_GetError());
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
-    }
-
-    /* Main loop */
-    while (running) {
-        while (SDL_PollEvent(&event)) {
-            if (!handle_events(&event)) {
-                running = 0;
-            }
-            handleKeyboardInput(&event, &playerX, &playerY, &playerAngle);
-            handleMouseMotion(&event, &playerAngle); // Handle mouse movement
+    while (!quit)
+    {
+        while (SDL_PollEvent(&event))
+        {
+            if (event.type == SDL_QUIT)
+                quit = 1;
         }
+
+        const Uint8 *state = SDL_GetKeyboardState(NULL);
+        if (state[SDL_SCANCODE_W])
+            move_forward(camera, map, move_speed);
+        if (state[SDL_SCANCODE_S])
+            move_backward(camera, map, move_speed);
+        if (state[SDL_SCANCODE_A])
+            rotate_left(camera, rot_speed);
+        if (state[SDL_SCANCODE_D])
+            rotate_right(camera, rot_speed);
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        render(renderer, playerX, playerY, playerAngle);
+        render_walls(renderer, camera, map);
 
         SDL_RenderPresent(renderer);
     }
+}
+
+/**
+ * main - Entry point of the raycasting program.
+ *
+ * Return: 0 on success, -1 on failure.
+ */
+int main(void)
+{
+    SDL_Window *window = NULL;
+    SDL_Renderer *renderer = NULL;
+    Camera camera = {.pos_x = 22, .pos_y = 12, .dir_x = -1, .dir_y = 0, .plane_x = 0, .plane_y = 0.66};
+    int world_map[MAP_HEIGHT][MAP_WIDTH] = { /* Initialize your map data here */ };
+
+    if (initialize_sdl(&window, &renderer) != 0)
+        return (-1);
+
+    game_loop(renderer, &camera, world_map);
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
-    return 0;
+
+    return (0);
 }
