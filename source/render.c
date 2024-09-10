@@ -38,44 +38,85 @@ void calculate_side_distance(Camera *camera, double ray_dir_x,
 }
 
 /**
- * render_column - Draws a vertical column of the wall, ceiling, and floor.
- * @renderer: SDL renderer.
- * @x: The column x-coordinate on the screen.
- * @draw_start: Start position of the wall.
- * @draw_end: End position of the wall.
- * @side: Whether the wall was hit on x-side or y-side.
+ * calculate_ray_dir - Calculates the direction of the ray for a given x coordinate.
+ * @camera: Pointer to the camera struct.
+ * @x: The x coordinate on the screen.
+ * @ray_dir_x: Pointer to store ray direction in x-axis.
+ * @ray_dir_y: Pointer to store ray direction in y-axis.
  */
-void render_column(SDL_Renderer *renderer, int x, int draw_start, int draw_end, int side)
+void calculate_ray_dir(Camera *camera, int x, double *ray_dir_x, double *ray_dir_y)
 {
-    SDL_SetRenderDrawColor(renderer, side == 0 ? 255 : 128, 0, 0, 255);
-    SDL_RenderDrawLine(renderer, x, draw_start, x, draw_end);
-
-    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255); /* Blue ceiling */
-    SDL_RenderDrawLine(renderer, x, 0, x, draw_start);
-
-    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); /* Green floor */
-    SDL_RenderDrawLine(renderer, x, draw_end, x, SCREEN_HEIGHT);
+    double camera_x = 2 * x / (double)SCREEN_WIDTH - 1;
+    *ray_dir_x = camera->dir_x + camera->plane_x * camera_x;
+    *ray_dir_y = camera->dir_y + camera->plane_y * camera_x;
 }
 
 /**
- * render_walls - Renders all wall columns using raycasting.
- * @renderer: SDL renderer.
- * @camera: Pointer to the camera struct.
- * @map: 2D map of the game world.
+ * perform_dda - Performs the DDA algorithm to find the wall hit point.
+ * @map_x: Pointer to the current map x-coordinate.
+ * @map_y: Pointer to the current map y-coordinate.
+ * @step_x: Step in the x direction.
+ * @step_y: Step in the y direction.
+ * @hit: Pointer to store whether a wall was hit.
+ * @side: Pointer to store whether the wall was hit on the x-side or y-side.
  */
-void render_walls(SDL_Renderer *renderer, Camera *camera, int map[MAP_HEIGHT][MAP_WIDTH])
+void perform_dda(int *map_x, int *map_y, int step_x, int step_y, int *hit, int *side)
 {
-    int x, step_x, step_y, hit, side;
-    double ray_dir_x, ray_dir_y, side_dist_x, side_dist_y;
-    double perp_wall_dist, delta_dist_x, delta_dist_y;
+    int side_dist_x = 0;
+    int side_dist_y = 0;
+    *hit = 0;
 
-    for (x = 0; x < SCREEN_WIDTH; x++)
+    while (!(*hit))
     {
-        calculate_ray_dir(camera, x, &ray_dir_x, &ray_dir_y);
-        calculate_side_distance(camera, ray_dir_x, ray_dir_y,
-                                &side_dist_x, &side_dist_y, &step_x, &step_y);
-        perform_dda(&map_x, &map_y, step_x, step_y, &hit, &side);
-        perp_wall_dist = calculate_wall_distance(ray_dir_x, ray_dir_y, side);
-        draw_vertical_line(renderer, x, perp_wall_dist, side);
+        if (side_dist_x < side_dist_y)
+        {
+            side_dist_x += delta_dist_x;
+            *map_x += step_x;
+            *side = 0;
+        }
+        else
+        {
+            side_dist_y += delta_dist_y;
+            *map_y += step_y;
+            *side = 1;
+        }
+
+        if (world_map[*map_x][*map_y] > 0)
+            *hit = 1;
     }
+}
+
+/**
+ * calculate_wall_distance - Calculates the distance to the wall.
+ * @ray_dir_x: Ray direction in x-axis.
+ * @ray_dir_y: Ray direction in y-axis.
+ * @side: Whether the wall was hit on x-side or y-side.
+ * 
+ * Return: The perpendicular distance to the wall.
+ */
+double calculate_wall_distance(double ray_dir_x, double ray_dir_y, int side)
+{
+    return side == 0 ? fabs((map_x - camera->pos_x + (1 - step_x) / 2) / ray_dir_x) :
+                        fabs((map_y - camera->pos_y + (1 - step_y) / 2) / ray_dir_y);
+}
+
+/**
+ * draw_vertical_line - Draws a vertical line representing a wall column.
+ * @renderer: SDL renderer.
+ * @x: The x coordinate of the column.
+ * @perp_wall_dist: The perpendicular distance to the wall.
+ * @side: Whether the wall was hit on x-side or y-side.
+ */
+void draw_vertical_line(SDL_Renderer *renderer, int x, double perp_wall_dist, int side)
+{
+    int line_height = (int)(SCREEN_HEIGHT / perp_wall_dist);
+    int draw_start = -line_height / 2 + SCREEN_HEIGHT / 2;
+    int draw_end = line_height / 2 + SCREEN_HEIGHT / 2;
+
+    if (draw_start < 0)
+        draw_start = 0;
+    if (draw_end >= SCREEN_HEIGHT)
+        draw_end = SCREEN_HEIGHT - 1;
+
+    render_column(renderer, x, draw_start, draw_end, side);
 }
